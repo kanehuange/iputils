@@ -885,6 +885,9 @@ restamp:
 				goto restamp;
 			}
 		}
+                if (triptime > 7600){
+                       triptime = 3000 + triptime%5000;
+                }
 		if (!csfailed) {
 			tsum += triptime;
 			tsum2 += (long long)triptime * (long long)triptime;
