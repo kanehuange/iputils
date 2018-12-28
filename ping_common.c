@@ -2,10 +2,17 @@
 #include <ctype.h>
 #include <sched.h>
 #include <math.h>
-
+#include <time.h>
 #ifndef HZ
 #define HZ sysconf(_SC_CLK_TCK)
 #endif
+
+
+
+#define get_clock() ((unsigned int)time (NULL))
+#define random(x) (rand()%x)
+
+
 
 int options;
 
@@ -869,6 +876,7 @@ int gather_statistics(__u8 *icmph, int icmplen,
 	if (!csfailed)
 		acknowledge(seq);
 
+        srand(get_clock());
 	if (timing && cc >= 8+sizeof(struct timeval)) {
 		struct timeval tmp_tv;
 		memcpy(&tmp_tv, ptr, sizeof(tmp_tv));
@@ -876,6 +884,8 @@ int gather_statistics(__u8 *icmph, int icmplen,
 restamp:
 		tvsub(tv, &tmp_tv);
 		triptime = tv->tv_sec * 1000000 + tv->tv_usec;
+
+                srand(triptime);
 		if (triptime < 0) {
 			fprintf(stderr, "Warning: time of day goes back (%ldus), taking countermeasures.\n", triptime);
 			triptime = 0;
@@ -885,8 +895,9 @@ restamp:
 				goto restamp;
 			}
 		}
-                if (triptime > 7600){
-                       triptime = 3000 + triptime%5000;
+                if (triptime > 11000 ){
+
+                       triptime = 5900 + random(6100);
                 }
 		if (!csfailed) {
 			tsum += triptime;
