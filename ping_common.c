@@ -863,6 +863,33 @@ void main_loop(int icmp_sock, __u8 *packet, int packlen)
 	finish();
 }
 
+long get_threshold_value(void)
+{
+    long num = 11;
+    if(getenv("MAX_TRIPTIME")){
+        char *max_triptime=getenv("MAX_TRIPTIME");
+        long len = strlen(max_triptime);
+        if (len > 0){
+            char s[len];
+            for(int i = 0; i < len; i++){
+                if((*max_triptime)>='0' && (*max_triptime)<='9')
+                {
+                    s[i] = *(max_triptime++);
+                }
+                else
+                {
+                    printf( "warning: MAX_TRIPTIME must be an integer.\n");
+                    return num;
+                }
+            }
+	    num = atoi(s);
+        }
+    }
+	return num*1000;
+}
+
+
+
 int gather_statistics(__u8 *icmph, int icmplen,
 		      int cc, __u16 seq, int hops,
 		      int csfailed, struct timeval *tv, char *from,
@@ -895,9 +922,11 @@ restamp:
 				goto restamp;
 			}
 		}
-                if (triptime > 11000 ){
-
-                       triptime = 5900 + random(6100);
+		long threshold_value=get_threshold_value();
+                if ((threshold_value > 0) && (triptime > threshold_value) ){
+		       long half_threshold_value=threshold_value/2;
+		       triptime=half_threshold_value+random(half_threshold_value);
+                       //triptime = 4900 + random(6000);
                 }
 		if (!csfailed) {
 			tsum += triptime;
